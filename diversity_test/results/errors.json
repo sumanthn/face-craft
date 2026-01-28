@@ -1,0 +1,52 @@
+[
+  {
+    "celebrity": "Fan Bingbing",
+    "region": "east_asia",
+    "error": "('Connection aborted.', BadStatusLine('SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\\r\\n'))"
+  },
+  {
+    "celebrity": "Gong Li",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Zhang Ziyi",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Liu Yifei",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Li Bingbing",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Huang Xiaoming",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Wang Leehom",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Jay Chou",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Yang Mi",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  },
+  {
+    "celebrity": "Zhao Wei",
+    "region": "east_asia",
+    "error": "No image downloaded"
+  }
+]
