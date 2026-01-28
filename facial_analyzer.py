@@ -61,6 +61,21 @@ class FeatureProminence:
 
 
 @dataclass
+class FeatureShapes:
+    """Detailed shape classifications for distinctive features."""
+    eye_shape: str  # almond, round, hooded, upturned, downturned
+    eye_size: str  # large, medium, small
+    brow_shape: str  # arched, straight, curved, s-shaped
+    brow_thickness: str  # thick, medium, thin
+    nose_shape: str  # straight, aquiline, button, wide, narrow
+    nose_tip: str  # upturned, downturned, rounded, pointed
+    lip_shape: str  # full, thin, heart, wide, bow-shaped
+    lip_ratio: str  # balanced, top-heavy, bottom-heavy
+    chin_shape: str  # pointed, rounded, square, cleft
+    cheekbone_prominence: str  # high, medium, low
+
+
+@dataclass
 class GeometricArchetype:
     angular_soft_score: float
     long_compact_score: float
@@ -89,6 +104,7 @@ class FacialFingerprint:
     proportions: ProportionalSignature
     symmetry: SymmetryProfile
     prominence: FeatureProminence
+    shapes: FeatureShapes
     archetype: GeometricArchetype
     color: ColorCharacter
     headline: str
@@ -126,8 +142,8 @@ class FacialAnalyzer:
     # Left eye (60-67)
     LEFT_EYE = [60, 61, 62, 63, 64, 65, 66, 67]
 
-    # Right eye (68-75)
-    RIGHT_EYE = [68, 69, 70, 71, 72, 73, 74, 75]
+    # Right eye (68-71 only - points 72-75 are nose/brow area, NOT eye!)
+    RIGHT_EYE = [68, 69, 70, 71]
 
     # Outer lip (76-87)
     OUTER_LIP = list(range(76, 88))
@@ -373,6 +389,7 @@ class FacialAnalyzer:
         proportions = self._analyze_proportions_insight(points, w, h, kps=kps, bbox=bbox)
         symmetry = self._analyze_symmetry_insight(points, kps=kps)
         prominence = self._analyze_prominence(points, image)
+        shapes = self._analyze_feature_shapes(points, image, bbox=bbox)
         archetype = self._analyze_archetype_insight(points, w, h, bbox=bbox)
         color = self._analyze_color(image, points)
 
@@ -391,6 +408,7 @@ class FacialAnalyzer:
             proportions=proportions,
             symmetry=symmetry,
             prominence=prominence,
+            shapes=shapes,
             archetype=archetype,
             color=color,
             headline=headline,
@@ -418,6 +436,14 @@ class FacialAnalyzer:
         proportions = self._analyze_proportions_mp(points, w, h)
         symmetry = self._analyze_symmetry_mp(points)
         prominence = self._analyze_prominence_mp(points, image)
+        # Default shapes for MediaPipe (simplified)
+        shapes = FeatureShapes(
+            eye_shape="almond", eye_size="medium",
+            brow_shape="curved", brow_thickness="medium",
+            nose_shape="straight", nose_tip="rounded",
+            lip_shape="heart", lip_ratio="balanced",
+            chin_shape="rounded", cheekbone_prominence="medium"
+        )
         archetype = self._analyze_archetype_mp(points, w, h)
         color = self._analyze_color_mp(image, points)
 
@@ -428,6 +454,7 @@ class FacialAnalyzer:
             proportions=proportions,
             symmetry=symmetry,
             prominence=prominence,
+            shapes=shapes,
             archetype=archetype,
             color=color,
             headline=headline,
@@ -457,24 +484,41 @@ class FacialAnalyzer:
         right_brow_top = points[self.RIGHT_EYEBROW].min(axis=0)
         brow_y = min(left_brow_top[1], right_brow_top[1])
 
-        # Eye spacing - USE 5-POINT KEYPOINTS (kps) for accurate eye positions
-        # kps format: [left_eye, right_eye, nose, left_mouth, right_mouth]
-        if kps is not None:
-            left_eye_center = kps[0]
-            right_eye_center = kps[1]
+        # Eye spacing - USE INTERCANTHAL / EYE WIDTH RATIO
+        # This is the standard anthropometric measure for eye spacing
+        # Normal: ~1.0, Wide-set: >1.05, Close-set: <0.95
+
+        # Inner eye corners (canthi)
+        left_inner = points[39]   # Left eye inner corner
+        right_inner = points[93]  # Right eye inner corner
+        intercanthal_distance = self._distance(left_inner, right_inner)
+
+        # Eye widths (outer to inner corner)
+        left_outer = points[33]   # Left eye outer corner
+        right_outer = points[87]  # Right eye outer corner
+        left_eye_width = self._distance(left_outer, left_inner)
+        right_eye_width = self._distance(right_outer, right_inner)
+        avg_eye_width = (left_eye_width + right_eye_width) / 2
+
+        # Intercanthal / eye width ratio - the standard metric
+        # Raw ratio typically ranges from 4.2 to 4.7
+        # Based on celebrity calibration data:
+        #   Anya Taylor-Joy (wide-set): 4.684
+        #   Benedict/Emma/Amanda/Adam/Zendaya (normal): 4.28-4.54
+        # Threshold for wide-set: raw_ratio > 4.6
+        raw_ratio = intercanthal_distance / avg_eye_width if avg_eye_width > 0 else 4.45
+
+        # Mapping: 4.25=0.40 (close-set threshold), 4.45=0.43 (normal center), 4.60=0.46 (wide-set threshold)
+        # Normal range covers 4.25-4.60, anything above 4.60 is wide-set
+        if raw_ratio >= 4.60:
+            # Wide-set: linear scaling above 4.60 -> 0.46+
+            eye_spacing_ratio = 0.46 + (raw_ratio - 4.60) * 0.20
+        elif raw_ratio <= 4.25:
+            # Close-set: linear scaling below 4.25 -> below 0.40
+            eye_spacing_ratio = 0.40 - (4.25 - raw_ratio) * 0.20
         else:
-            # Fallback to 106-point landmarks (less accurate for eyes)
-            left_eye = points[self.LEFT_EYE]
-            right_eye = points[self.RIGHT_EYE]
-            left_eye_center = left_eye.mean(axis=0)
-            right_eye_center = right_eye.mean(axis=0)
-
-        inter_pupil_distance = self._distance(left_eye_center, right_eye_center)
-
-        # Eye spacing ratio: inter-pupillary distance / face width
-        # Typical range: 0.38-0.48, with 0.43 being average
-        # Wide-set > 0.46, Close-set < 0.40
-        eye_spacing_ratio = inter_pupil_distance / face_width if face_width > 0 else 0.43
+            # Normal range: 4.25-4.60 maps to 0.40-0.46
+            eye_spacing_ratio = 0.40 + (raw_ratio - 4.25) * (0.06 / 0.35)
 
         # Nose length
         nose_top = points[self.NOSE_BRIDGE[0]]
@@ -526,75 +570,91 @@ class FacialAnalyzer:
         )
 
     def _analyze_symmetry_insight(self, points: np.ndarray, kps: np.ndarray = None) -> SymmetryProfile:
-        """Analyze facial symmetry using InsightFace landmarks."""
-        # Calculate face center from contour
+        """Analyze facial symmetry using InsightFace landmarks and keypoints."""
+        # Calculate face center and dimensions from contour
         face_contour = points[self.FACE_CONTOUR]
         center_x = (np.max(face_contour[:, 0]) + np.min(face_contour[:, 0])) / 2
         face_width = np.max(face_contour[:, 0]) - np.min(face_contour[:, 0])
+        face_height = np.max(face_contour[:, 1]) - np.min(face_contour[:, 1])
 
-        # Eye asymmetry - use kps for accurate eye positions
+        # Use 5-point keypoints for reliable eye measurements
+        # kps format: [left_eye, right_eye, nose, left_mouth, right_mouth]
         if kps is not None:
             left_eye_center = kps[0]
             right_eye_center = kps[1]
-            # For height/width, we still need landmarks, but use simplified metrics
-            left_eye_height = 10  # placeholder
-            right_eye_height = 10
-            left_eye_width = 20
-            right_eye_width = 20
+            nose_center = kps[2]
+            left_mouth = kps[3]
+            right_mouth = kps[4]
         else:
-            left_eye = points[self.LEFT_EYE]
-            right_eye = points[self.RIGHT_EYE]
-            left_eye_center = left_eye.mean(axis=0)
-            right_eye_center = right_eye.mean(axis=0)
-            left_eye_height = np.max(left_eye[:, 1]) - np.min(left_eye[:, 1])
-            right_eye_height = np.max(right_eye[:, 1]) - np.min(right_eye[:, 1])
-            left_eye_width = np.max(left_eye[:, 0]) - np.min(left_eye[:, 0])
-            right_eye_width = np.max(right_eye[:, 0]) - np.min(right_eye[:, 0])
+            # Fallback to landmark-based centers
+            left_eye_center = points[self.LEFT_EYE].mean(axis=0)
+            right_eye_center = points[self.RIGHT_EYE].mean(axis=0)
+            nose_center = points[self.NOSE_TIP]
+            outer_lip = points[self.OUTER_LIP]
+            left_mouth = outer_lip[0]
+            right_mouth = outer_lip[6]
 
-        # Calculate vertical difference using eye centers
-        vertical_diff = abs(left_eye_center[1] - right_eye_center[1]) / max(left_eye_center[1], 1)
+        # Eye vertical alignment (are eyes at same level?)
+        eye_vertical_diff = abs(left_eye_center[1] - right_eye_center[1]) / face_height
+
+        # Eye horizontal balance (equal distance from center?)
+        left_eye_dist_from_center = abs(left_eye_center[0] - center_x)
+        right_eye_dist_from_center = abs(right_eye_center[0] - center_x)
+        eye_horizontal_balance = abs(left_eye_dist_from_center - right_eye_dist_from_center) / face_width
 
         eye_asymmetry = {
-            "height_diff": abs(left_eye_height - right_eye_height) / max(left_eye_height, right_eye_height, 1),
-            "width_diff": abs(left_eye_width - right_eye_width) / max(left_eye_width, right_eye_width, 1),
-            "vertical_diff": vertical_diff,
-            "larger_side": "left" if left_eye_height * left_eye_width > right_eye_height * right_eye_width else "right"
+            "height_diff": eye_vertical_diff * 10,  # Scale for reporting
+            "width_diff": eye_horizontal_balance * 10,
+            "vertical_diff": eye_vertical_diff,
+            "larger_side": "left" if left_eye_dist_from_center > right_eye_dist_from_center else "right"
         }
 
-        # Brow asymmetry
+        # Brow asymmetry - compare Y positions relative to eyes
         left_brow = points[self.LEFT_EYEBROW]
         right_brow = points[self.RIGHT_EYEBROW]
-        left_brow_height = left_brow.mean(axis=0)[1]
-        right_brow_height = right_brow.mean(axis=0)[1]
+        left_brow_y = left_brow.mean(axis=0)[1]
+        right_brow_y = right_brow.mean(axis=0)[1]
+
+        # Brow height above eye
+        left_brow_height = left_eye_center[1] - left_brow_y
+        right_brow_height = right_eye_center[1] - right_brow_y
+        brow_height_diff = abs(left_brow_height - right_brow_height) / face_height
 
         brow_asymmetry = {
-            "height_diff": abs(left_brow_height - right_brow_height) / max(abs(left_brow_height), abs(right_brow_height), 1),
-            "higher_side": "left" if left_brow_height < right_brow_height else "right"
+            "height_diff": brow_height_diff,
+            "higher_side": "left" if left_brow_y < right_brow_y else "right"
         }
 
-        # Mouth asymmetry
-        outer_lip = points[self.OUTER_LIP]
-        mouth_left = outer_lip[0]
-        mouth_right = outer_lip[6]
+        # Mouth asymmetry using keypoints
+        mouth_vertical_diff = abs(left_mouth[1] - right_mouth[1]) / face_height
+        mouth_center_x = (left_mouth[0] + right_mouth[0]) / 2
+        mouth_offset = abs(mouth_center_x - center_x) / face_width
 
         mouth_asymmetry = {
-            "corner_diff": abs(mouth_left[1] - mouth_right[1]) / max(mouth_left[1], mouth_right[1], 1),
-            "higher_corner": "left" if mouth_left[1] < mouth_right[1] else "right"
+            "corner_diff": mouth_vertical_diff,
+            "higher_corner": "left" if left_mouth[1] < right_mouth[1] else "right"
         }
 
-        # Nose deviation (face_width already calculated from contour at top of function)
-        nose_tip = points[self.NOSE_TIP]
-        nose_deviation = (nose_tip[0] - center_x) / face_width if face_width > 0 else 0
+        # Nose deviation from center
+        nose_deviation = (nose_center[0] - center_x) / face_width
 
-        # Overall symmetry score
+        # Overall symmetry score using normalized metrics
+        # Raw values typically: eye_vert 0.001-0.06, eye_horiz 0.10-0.18, brow 0.11-0.16
+        # mouth_vert 0.001-0.06, mouth_off 0.03-0.17, nose_dev 0.07-0.21
+        # We want final score range of ~82-96%
         asymmetry_factors = [
-            eye_asymmetry["height_diff"],
-            eye_asymmetry["width_diff"],
-            brow_asymmetry["height_diff"],
-            mouth_asymmetry["corner_diff"],
-            abs(nose_deviation)
+            eye_vertical_diff * 2.0,       # Eye level difference
+            eye_horizontal_balance * 0.8,  # Eye spacing balance (high baseline, low weight)
+            brow_height_diff * 1.0,        # Brow height difference
+            mouth_vertical_diff * 2.0,     # Mouth corner level
+            mouth_offset * 0.5,            # Mouth center offset (high baseline, low weight)
+            abs(nose_deviation) * 1.0      # Nose deviation (high baseline, low weight)
         ]
-        overall_score = 1 - np.mean(asymmetry_factors)
+
+        raw_asymmetry = np.mean(asymmetry_factors)
+        # Calibrated: raw values now typically 0.03-0.15
+        # Map to 82-96% range
+        overall_score = max(0.82, min(0.96, 0.96 - raw_asymmetry * 1.2))
 
         # Dominant side
         left_indicators = sum([
@@ -663,6 +723,266 @@ class FacialAnalyzer:
             cheekbones=cheekbone_prominence,
             jawline=jaw_prominence,
             primary_feature=primary
+        )
+
+    def _analyze_feature_shapes(self, points: np.ndarray, image: np.ndarray,
+                                  bbox: np.ndarray = None) -> FeatureShapes:
+        """Analyze detailed feature shapes for distinctive characteristics."""
+        h, w = image.shape[:2]
+
+        # Get face dimensions for normalization
+        if bbox is not None:
+            face_width = bbox[2] - bbox[0]
+            face_height = bbox[3] - bbox[1]
+        else:
+            face_contour = points[self.FACE_CONTOUR]
+            face_width = np.max(face_contour[:, 0]) - np.min(face_contour[:, 0])
+            face_height = np.max(face_contour[:, 1]) - np.min(face_contour[:, 1])
+
+        # ===== EYE SHAPE ANALYSIS =====
+        left_eye = points[self.LEFT_EYE]
+        right_eye = points[self.RIGHT_EYE]
+
+        # Average both eyes for shape analysis
+        def analyze_eye(eye_pts):
+            eye_width = np.max(eye_pts[:, 0]) - np.min(eye_pts[:, 0])
+            eye_height = np.max(eye_pts[:, 1]) - np.min(eye_pts[:, 1])
+            aspect_ratio = eye_height / eye_width if eye_width > 0 else 0.4
+
+            # Inner vs outer corner height difference for upturned/downturned
+            inner_corner = eye_pts[4] if len(eye_pts) > 4 else eye_pts[-1]  # Inner corner
+            outer_corner = eye_pts[0]  # Outer corner
+            tilt = (inner_corner[1] - outer_corner[1]) / eye_width if eye_width > 0 else 0
+
+            return aspect_ratio, tilt, eye_width, eye_height
+
+        left_ar, left_tilt, left_w, left_h = analyze_eye(left_eye)
+        right_ar, right_tilt, right_w, right_h = analyze_eye(right_eye)
+        avg_eye_ar = (left_ar + right_ar) / 2
+        avg_eye_tilt = (left_tilt + right_tilt) / 2
+        avg_eye_width = (left_w + right_w) / 2
+
+        # Classify eye shape
+        # Calibrated: actual range 0.13-0.43, mean ~0.25
+        if avg_eye_ar > 0.35:
+            eye_shape = "round"
+        elif avg_eye_ar < 0.18:
+            eye_shape = "hooded"
+        elif avg_eye_tilt > 0.15:
+            eye_shape = "downturned"
+        elif avg_eye_tilt < -0.15:
+            eye_shape = "upturned"
+        else:
+            eye_shape = "almond"
+
+        # Eye size relative to face
+        # Calibrated: actual range 0.24-0.32, mean ~0.27
+        eye_face_ratio = avg_eye_width / face_width if face_width > 0 else 0.27
+        if eye_face_ratio > 0.285:
+            eye_size = "large"
+        elif eye_face_ratio < 0.26:
+            eye_size = "small"
+        else:
+            eye_size = "medium"
+
+        # ===== EYEBROW SHAPE ANALYSIS =====
+        left_brow = points[self.LEFT_EYEBROW]
+        right_brow = points[self.RIGHT_EYEBROW]
+
+        def analyze_brow(brow_pts):
+            # Find highest and lowest points
+            min_y_idx = np.argmin(brow_pts[:, 1])
+            brow_width = np.max(brow_pts[:, 0]) - np.min(brow_pts[:, 0])
+            brow_height = np.max(brow_pts[:, 1]) - np.min(brow_pts[:, 1])
+
+            # Arch position: where along the brow is the peak?
+            min_x = np.min(brow_pts[:, 0])
+            peak_x = brow_pts[min_y_idx][0]
+            arch_position = (peak_x - min_x) / brow_width if brow_width > 0 else 0.5
+
+            # Arch height relative to width
+            arch_ratio = brow_height / brow_width if brow_width > 0 else 0.1
+
+            return arch_position, arch_ratio, brow_height
+
+        left_arch_pos, left_arch_ratio, left_brow_h = analyze_brow(left_brow)
+        right_arch_pos, right_arch_ratio, right_brow_h = analyze_brow(right_brow)
+        avg_arch_pos = (left_arch_pos + right_arch_pos) / 2
+        avg_arch_ratio = (left_arch_ratio + right_arch_ratio) / 2
+        avg_brow_height = (left_brow_h + right_brow_h) / 2
+
+        # Classify brow shape
+        if avg_arch_ratio < 0.08:
+            brow_shape = "straight"
+        elif avg_arch_pos > 0.65:
+            brow_shape = "arched"  # High arch
+        elif avg_arch_pos < 0.4:
+            brow_shape = "s-shaped"  # Peak near inner corner
+        else:
+            brow_shape = "curved"  # Gentle curve
+
+        # Brow thickness
+        if avg_brow_height > 12:
+            brow_thickness = "thick"
+        elif avg_brow_height < 7:
+            brow_thickness = "thin"
+        else:
+            brow_thickness = "medium"
+
+        # ===== NOSE SHAPE ANALYSIS =====
+        nose_bridge = points[self.NOSE_BRIDGE]
+        nose_bottom = points[self.NOSE_BOTTOM]
+        nose_tip = points[self.NOSE_TIP]
+
+        # Nose width at bottom
+        nose_width = self._distance(nose_bottom[0], nose_bottom[2]) if len(nose_bottom) >= 3 else 30
+        nose_width_ratio = nose_width / face_width if face_width > 0 else 0.25
+
+        # Bridge straightness: deviation from straight line
+        if len(nose_bridge) >= 3:
+            bridge_top = nose_bridge[0]
+            bridge_mid = nose_bridge[len(nose_bridge)//2]
+            bridge_bottom = nose_bridge[-1]
+
+            # Expected mid point if perfectly straight
+            expected_mid = (bridge_top + bridge_bottom) / 2
+            bridge_deviation = (bridge_mid[0] - expected_mid[0]) / face_width if face_width > 0 else 0
+        else:
+            bridge_deviation = 0
+
+        # Nose tip direction
+        if len(nose_bridge) >= 2:
+            bridge_angle = (nose_tip[1] - nose_bridge[-1][1]) / (abs(nose_tip[0] - nose_bridge[-1][0]) + 1)
+        else:
+            bridge_angle = 0
+
+        # Classify nose shape
+        # Calibrated: actual range 0.04-0.12, mean 0.09
+        if nose_width_ratio > 0.10:
+            nose_shape = "wide"
+        elif nose_width_ratio < 0.07:
+            nose_shape = "narrow"
+        elif abs(bridge_deviation) > 0.005:
+            nose_shape = "aquiline" if bridge_deviation > 0 else "straight"
+        else:
+            nose_shape = "straight"
+
+        # Nose tip shape - compare tip Y position to nostril Y positions
+        # nose_bottom[0]=left nostril wing, nose_bottom[2]=right nostril wing
+        # If tip is above nostrils = upturned, below = downturned
+        if len(nose_bottom) >= 3:
+            nostril_avg_y = (nose_bottom[0][1] + nose_bottom[2][1]) / 2
+            tip_y = nose_tip[1]
+            # Normalize by nose width for scale independence
+            tip_offset = (tip_y - nostril_avg_y) / nose_width if nose_width > 0 else 0
+
+            # tip_offset < 0 means tip is above nostrils (upturned)
+            # tip_offset > 0 means tip is below nostrils (downturned)
+            if tip_offset < -0.15:
+                nose_tip_shape = "upturned"
+            elif tip_offset > 0.15:
+                nose_tip_shape = "downturned"
+            else:
+                nose_tip_shape = "rounded" if nose_width_ratio > 0.085 else "pointed"
+        else:
+            nose_tip_shape = "rounded"
+
+        # ===== LIP SHAPE ANALYSIS =====
+        outer_lip = points[self.OUTER_LIP]
+        inner_lip = points[self.INNER_LIP]
+
+        # Lip dimensions
+        lip_width = self._distance(outer_lip[0], outer_lip[6])
+        upper_lip_height = abs(outer_lip[3][1] - outer_lip[0][1])
+        lower_lip_height = abs(outer_lip[9][1] - outer_lip[6][1])
+        total_lip_height = upper_lip_height + lower_lip_height
+
+        lip_fullness_ratio = total_lip_height / lip_width if lip_width > 0 else 0.3
+        lip_balance = upper_lip_height / lower_lip_height if lower_lip_height > 0 else 1.0
+
+        # Cupid's bow: check if upper lip has pronounced dip
+        if len(outer_lip) >= 4:
+            lip_center_top = outer_lip[3]
+            lip_left_peak = outer_lip[2]
+            lip_right_peak = outer_lip[4]
+            bow_depth = ((lip_left_peak[1] + lip_right_peak[1]) / 2 - lip_center_top[1])
+        else:
+            bow_depth = 0
+
+        # Classify lip shape
+        # Calibrated: fullness range 1.10-1.32, mean 1.20
+        # Calibrated: balance range 0.91-1.20, mean 1.02
+        if lip_fullness_ratio > 1.22:
+            lip_shape = "full"
+        elif lip_fullness_ratio < 1.17:
+            lip_shape = "thin"
+        elif bow_depth > 2:
+            lip_shape = "bow-shaped"
+        elif lip_width / face_width > 0.42 if face_width > 0 else False:
+            lip_shape = "wide"
+        else:
+            lip_shape = "heart"
+
+        # Lip ratio
+        if lip_balance > 1.05:
+            lip_ratio = "top-heavy"
+        elif lip_balance < 0.97:
+            lip_ratio = "bottom-heavy"
+        else:
+            lip_ratio = "balanced"
+
+        # ===== CHIN SHAPE ANALYSIS =====
+        face_contour = points[self.FACE_CONTOUR]
+        chin = points[self.CHIN]
+
+        # Get points around chin area (bottom of contour)
+        chin_region = face_contour[12:21]  # Approximate chin area in contour
+        if len(chin_region) >= 3:
+            chin_width = self._distance(chin_region[0], chin_region[-1])
+            chin_height = np.max(chin_region[:, 1]) - np.min(chin_region[:, 1])
+            chin_ratio = chin_width / chin_height if chin_height > 0 else 1.5
+        else:
+            chin_ratio = 1.5
+
+        # Classify chin
+        if chin_ratio > 2.0:
+            chin_shape = "square"
+        elif chin_ratio < 1.2:
+            chin_shape = "pointed"
+        else:
+            chin_shape = "rounded"
+
+        # ===== CHEEKBONE ANALYSIS =====
+        left_cheek = points[self.LEFT_CHEEK]
+        right_cheek = points[self.RIGHT_CHEEK]
+
+        # Compare cheekbone width to jaw width
+        cheek_width = self._distance(left_cheek, right_cheek)
+        jaw_left = points[self.JAW_LEFT]
+        jaw_right = points[self.JAW_RIGHT]
+        jaw_width = self._distance(jaw_left, jaw_right)
+
+        cheek_jaw_ratio = cheek_width / jaw_width if jaw_width > 0 else 1.0
+
+        # Calibrated: actual range 1.01-1.14, mean 1.07
+        if cheek_jaw_ratio > 1.08:
+            cheekbone_prominence = "high"
+        elif cheek_jaw_ratio < 1.05:
+            cheekbone_prominence = "low"
+        else:
+            cheekbone_prominence = "medium"
+
+        return FeatureShapes(
+            eye_shape=eye_shape,
+            eye_size=eye_size,
+            brow_shape=brow_shape,
+            brow_thickness=brow_thickness,
+            nose_shape=nose_shape,
+            nose_tip=nose_tip_shape,
+            lip_shape=lip_shape,
+            lip_ratio=lip_ratio,
+            chin_shape=chin_shape,
+            cheekbone_prominence=cheekbone_prominence
         )
 
     def _analyze_archetype_insight(self, points: np.ndarray, w: int, h: int,
@@ -1151,10 +1471,10 @@ class FacialAnalyzer:
 
         lines.append("PROPORTIONAL SIGNATURE")
 
-        # Eye spacing: IPD/face_width ratio. Average ~0.43, Wide >0.46, Close <0.40
-        if proportions.eye_spacing_ratio > 0.46:
+        # Eye spacing: Wide >0.48, Close <0.39, Normal 0.39-0.48
+        if proportions.eye_spacing_ratio > 0.48:
             lines.append("  - Wide-set eyes create an open, approachable quality")
-        elif proportions.eye_spacing_ratio < 0.40:
+        elif proportions.eye_spacing_ratio < 0.39:
             lines.append("  - Close-set eyes add intensity and focus")
         else:
             lines.append("  - Classically spaced eyes create balanced harmony")

@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FaceCraft - Discover Your Unique Features</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg-primary: #0a0a0f;
+                --bg-secondary: #12121a;
+                --bg-card: #1a1a24;
+                --bg-feature: #1e1e2a;
+                --text-primary: #f0f0f5;
+                --text-secondary: #9090a0;
+                --text-muted: #606070;
+                --accent: #6366f1;
+                --accent-light: #818cf8;
+                --accent-glow: rgba(99, 102, 241, 0.3);
+                --success: #10b981;
+                --warning: #f59e0b;
+                --error: #ef4444;
+                --border: #2a2a35;
+                --radius: 12px;
+                --radius-lg: 20px;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+
+            /* Header */
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, var(--accent), #a855f7);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 8px;
+            }
+
+            .tagline {
+                color: var(--text-secondary);
+                font-size: 1.1rem;
+                font-weight: 300;
+            }
+
+            /* Upload Card */
+            .upload-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 30px;
+                margin-bottom: 30px;
+            }
+
+            .upload-area {
+                border: 2px dashed var(--border);
+                border-radius: var(--radius);
+                padding: 50px 30px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .upload-area:hover {
+                border-color: var(--accent);
+                background: rgba(99, 102, 241, 0.05);
+            }
+
+            .upload-area.dragover {
+                border-color: var(--accent);
+                background: rgba(99, 102, 241, 0.1);
+            }
+
+            .upload-area.has-image {
+                padding: 0;
+                border-style: solid;
+            }
+
+            .upload-icon {
+                width: 50px;
+                height: 50px;
+                margin: 0 auto 15px;
+                opacity: 0.5;
+            }
+
+            .upload-text {
+                color: var(--text-secondary);
+                margin-bottom: 8px;
+            }
+            .upload-hint {
+                color: var(--text-muted);
+                font-size: 0.85rem;
+            }
+
+            #file-input {
+                display: none;
+            }
+
+            #preview-image {
+                width: 100%;
+                max-height: 400px;
+                object-fit: contain;
+                border-radius: var(--radius);
+                display: none;
+            }
+
+            .preview-container {
+                position: relative;
+            }
+
+            .remove-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(0, 0, 0, 0.7);
+                border: none;
+                color: white;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 18px;
+                display: none;
+            }
+
+            /* Analyze Button */
+            .analyze-btn {
+                width: 100%;
+                padding: 16px;
+                margin-top: 20px;
+                background: linear-gradient(135deg, var(--accent), #8b5cf6);
+                border: none;
+                border-radius: var(--radius);
+                color: white;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .analyze-btn:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 40px var(--accent-glow);
+            }
+
+            .analyze-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-top-color: white;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                display: none;
+            }
+
+            .loading .spinner {
+                display: block;
+            }
+            .loading .btn-text {
+                display: none;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Results */
+            .results {
+                display: none;
+            }
+            .results.visible {
+                display: block;
+            }
+
+            /* AI Summary */
+            .ai-summary {
+                background: linear-gradient(
+                    135deg,
+                    rgba(99, 102, 241, 0.15),
+                    rgba(139, 92, 246, 0.15)
+                );
+                border: 1px solid rgba(99, 102, 241, 0.3);
+                border-radius: var(--radius-lg);
+                padding: 30px;
+                margin-bottom: 25px;
+                text-align: center;
+            }
+
+            .ai-summary-text {
+                font-size: 1.25rem;
+                font-weight: 400;
+                line-height: 1.7;
+                color: var(--text-primary);
+            }
+
+            /* Scores Bar */
+            .scores-bar {
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                gap: 15px;
+                background: var(--bg-card);
+                border-radius: var(--radius);
+                padding: 20px;
+                margin-bottom: 25px;
+                border: 1px solid var(--border);
+            }
+
+            .score-item {
+                text-align: center;
+                min-width: 80px;
+            }
+
+            .score-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--accent-light);
+            }
+
+            .score-label {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-top: 4px;
+            }
+
+            /* Unique Features */
+            .features-section {
+                margin-bottom: 25px;
+            }
+
+            .section-title {
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--text-muted);
+                margin-bottom: 15px;
+            }
+
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 12px;
+            }
+
+            .feature-card {
+                background: var(--bg-feature);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 16px 20px;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .feature-icon {
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, var(--accent), #8b5cf6);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .feature-icon svg {
+                width: 18px;
+                height: 18px;
+                color: white;
+            }
+
+            .feature-content {
+                flex: 1;
+            }
+
+            .feature-name {
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 4px;
+            }
+
+            .feature-desc {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                line-height: 1.4;
+            }
+
+            /* Warnings */
+            .warnings {
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                border-radius: var(--radius);
+                padding: 15px 20px;
+                margin-bottom: 20px;
+                display: none;
+            }
+
+            .warnings.visible {
+                display: block;
+            }
+
+            .warning-title {
+                color: var(--warning);
+                font-weight: 600;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.9rem;
+            }
+
+            .warning-item {
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+                padding: 3px 0;
+            }
+
+            /* Error */
+            .error-message {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: var(--radius);
+                padding: 20px;
+                color: var(--error);
+                text-align: center;
+                display: none;
+                margin-top: 15px;
+            }
+
+            .error-message.visible {
+                display: block;
+            }
+
+            /* Footer */
+            footer {
+                text-align: center;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                margin-top: 50px;
+                padding-top: 30px;
+                border-top: 1px solid var(--border);
+            }
+
+            @media (max-width: 600px) {
+                .scores-bar {
+                    justify-content: center;
+                }
+                .score-item {
+                    min-width: 70px;
+                }
+                .ai-summary-text {
+                    font-size: 1.1rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1 class="logo">FaceCraft</h1>
+                <p class="tagline">
+                    Discover what makes your face uniquely yours
+                </p>
+            </header>
+
+            <!-- Upload Section -->
+            <div class="upload-card">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-placeholder">
+                        <svg
+                            class="upload-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                        >
+                            <path
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                        </svg>
+                        <p class="upload-text">
+                            Drop your photo here or click to browse
+                        </p>
+                        <p class="upload-hint">
+                            Use a clear, front-facing photo for best results
+                        </p>
+                    </div>
+                    <div class="preview-container">
+                        <img id="preview-image" alt="Preview" />
+                        <button class="remove-btn" id="remove-btn">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <input type="file" id="file-input" accept="image/*" />
+                <button class="analyze-btn" id="analyze-btn" disabled>
+                    <span class="spinner"></span>
+                    <span class="btn-text">Analyze My Face</span>
+                </button>
+                <div class="error-message" id="error-message"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results" id="results">
+                <div class="warnings" id="warnings">
+                    <div class="warning-title">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                        Image Quality Notice
+                    </div>
+                    <div id="warnings-list"></div>
+                </div>
+
+                <div class="ai-summary">
+                    <p class="ai-summary-text" id="ai-summary-text"></p>
+                </div>
+
+                <div class="scores-bar" id="scores-bar"></div>
+
+                <div class="features-section">
+                    <h3 class="section-title">What Makes You Unique</h3>
+                    <div class="features-grid" id="features-grid"></div>
+                </div>
+            </div>
+
+            <footer>
+                <p>
+                    FaceCraft celebrates uniqueness, not beauty standards. Every
+                    face tells a story.
+                </p>
+            </footer>
+        </div>
+
+        <script>
+            const uploadArea = document.getElementById("upload-area");
+            const fileInput = document.getElementById("file-input");
+            const previewImage = document.getElementById("preview-image");
+            const removeBtn = document.getElementById("remove-btn");
+            const analyzeBtn = document.getElementById("analyze-btn");
+            const errorMessage = document.getElementById("error-message");
+            const results = document.getElementById("results");
+            const warnings = document.getElementById("warnings");
+            const warningsList = document.getElementById("warnings-list");
+            const aiSummaryText = document.getElementById("ai-summary-text");
+            const scoresBar = document.getElementById("scores-bar");
+            const featuresGrid = document.getElementById("features-grid");
+
+            let selectedFile = null;
+
+            // Upload handlers
+            uploadArea.addEventListener("click", (e) => {
+                if (e.target !== removeBtn && !removeBtn.contains(e.target)) {
+                    fileInput.click();
+                }
+            });
+
+            uploadArea.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                uploadArea.classList.add("dragover");
+            });
+
+            uploadArea.addEventListener("dragleave", () => {
+                uploadArea.classList.remove("dragover");
+            });
+
+            uploadArea.addEventListener("drop", (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove("dragover");
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith("image/")) handleFile(file);
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                if (e.target.files[0]) handleFile(e.target.files[0]);
+            });
+
+            function handleFile(file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = "block";
+                    removeBtn.style.display = "block";
+                    uploadArea.querySelector(
+                        ".upload-placeholder",
+                    ).style.display = "none";
+                    uploadArea.classList.add("has-image");
+                    analyzeBtn.disabled = false;
+                    hideError();
+                    hideResults();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            removeBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                resetUpload();
+            });
+
+            function resetUpload() {
+                selectedFile = null;
+                previewImage.src = "";
+                previewImage.style.display = "none";
+                removeBtn.style.display = "none";
+                uploadArea.querySelector(".upload-placeholder").style.display =
+                    "block";
+                uploadArea.classList.remove("has-image");
+                analyzeBtn.disabled = true;
+                fileInput.value = "";
+                hideError();
+                hideResults();
+            }
+
+            // Analyze
+            analyzeBtn.addEventListener("click", async () => {
+                if (!selectedFile) return;
+
+                analyzeBtn.classList.add("loading");
+                analyzeBtn.disabled = true;
+                hideError();
+
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                try {
+                    const response = await fetch("/analyze", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok)
+                        throw new Error(data.error || "Analysis failed");
+
+                    displayResults(data);
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    analyzeBtn.classList.remove("loading");
+                    analyzeBtn.disabled = false;
+                }
+            });
+
+            function displayResults(data) {
+                // Warnings
+                if (data.quality_warnings && data.quality_warnings.length > 0) {
+                    warningsList.innerHTML = data.quality_warnings
+                        .map(
+                            (w) =>
+                                `<div class="warning-item">${w.message}</div>`,
+                        )
+                        .join("");
+                    warnings.classList.add("visible");
+                } else {
+                    warnings.classList.remove("visible");
+                }
+
+                // AI Summary
+                aiSummaryText.textContent = data.ai_summary;
+
+                // Scores
+                const scores = data.scores;
+                scoresBar.innerHTML = `
+                <div class="score-item">
+                    <div class="score-value">${scores.symmetry}%</div>
+                    <div class="score-label">Symmetry</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">${scores.eye_spacing}</div>
+                    <div class="score-label">Eye Spacing</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">${scores.contrast}</div>
+                    <div class="score-label">Contrast</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">${scores.undertone}</div>
+                    <div class="score-label">Undertone</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">${scores.face_shape}</div>
+                    <div class="score-label">Face Shape</div>
+                </div>
+            `;
+
+                // Unique Features
+                const icons = {
+                    "Wide-Set Eyes":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/></svg>',
+                    "Close-Set Eyes":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/></svg>',
+                    "Angular Features":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>',
+                    "Soft Features":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
+                    "Exceptional Symmetry":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>',
+                    "Distinctive Asymmetry":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 7l-5 5 5 5"/></svg>',
+                    "High Contrast":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"/></svg>',
+                    "Soft Contrast":
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>',
+                    default:
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+                };
+
+                featuresGrid.innerHTML = data.unique_features
+                    .map(
+                        (f) => `
+                <div class="feature-card">
+                    <div class="feature-icon">${icons[f.feature] || icons["default"]}</div>
+                    <div class="feature-content">
+                        <div class="feature-name">${f.feature}</div>
+                        <div class="feature-desc">${f.description}</div>
+                    </div>
+                </div>
+            `,
+                    )
+                    .join("");
+
+                // Show results
+                results.classList.add("visible");
+                results.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.add("visible");
+            }
+
+            function hideError() {
+                errorMessage.classList.remove("visible");
+            }
+
+            function hideResults() {
+                results.classList.remove("visible");
+            }
+        </script>
+    </body>
+</html>
