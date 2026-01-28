@@ -457,6 +457,152 @@
                 border-top: 1px solid var(--border);
             }
 
+            /* Celebrity Carousel */
+            .celebrity-section {
+                margin-bottom: 40px;
+            }
+
+            .celebrity-section .section-title {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .carousel-container {
+                position: relative;
+                overflow: hidden;
+                padding: 10px 0;
+            }
+
+            .carousel-track {
+                display: flex;
+                gap: 16px;
+                animation: scroll 40s linear infinite;
+                width: max-content;
+            }
+
+            .carousel-track:hover {
+                animation-play-state: paused;
+            }
+
+            @keyframes scroll {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(-50%);
+                }
+            }
+
+            .celebrity-card {
+                flex-shrink: 0;
+                width: 140px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-align: center;
+            }
+
+            .celebrity-card:hover {
+                transform: scale(1.08);
+            }
+
+            .celebrity-card.analyzing {
+                opacity: 0.7;
+                pointer-events: none;
+            }
+
+            .celebrity-img-wrapper {
+                position: relative;
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 10px;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 3px solid var(--border);
+                transition: border-color 0.3s ease;
+            }
+
+            .celebrity-card:hover .celebrity-img-wrapper {
+                border-color: var(--accent);
+            }
+
+            .celebrity-card.analyzing .celebrity-img-wrapper::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border: 3px solid transparent;
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            .celebrity-img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .celebrity-name {
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .celebrity-region {
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                margin-top: 2px;
+            }
+
+            .carousel-hint {
+                text-align: center;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                margin-top: 15px;
+            }
+
+            /* Selected celebrity indicator */
+            .selected-celebrity {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 15px 20px;
+                margin-bottom: 20px;
+                display: none;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .selected-celebrity.visible {
+                display: flex;
+            }
+
+            .selected-celebrity img {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+
+            .selected-celebrity-info {
+                flex: 1;
+            }
+
+            .selected-celebrity-name {
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .selected-celebrity-region {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+            }
+
             @media (max-width: 600px) {
                 .scores-bar {
                     justify-content: center;
@@ -466,6 +612,13 @@
                 }
                 .ai-summary-text {
                     font-size: 1.1rem;
+                }
+                .celebrity-card {
+                    width: 110px;
+                }
+                .celebrity-img-wrapper {
+                    width: 90px;
+                    height: 90px;
                 }
             }
         </style>
@@ -478,6 +631,34 @@
                     Discover what makes your face uniquely yours
                 </p>
             </header>
+
+            <!-- Celebrity Carousel -->
+            <div class="celebrity-section">
+                <h3 class="section-title">Try with Famous Faces</h3>
+                <div class="carousel-container">
+                    <div class="carousel-track" id="carousel-track">
+                        <!-- Celebrities will be populated by JS -->
+                    </div>
+                </div>
+                <p class="carousel-hint">
+                    Click any celebrity to see their facial analysis
+                </p>
+            </div>
+
+            <!-- Selected Celebrity Indicator -->
+            <div class="selected-celebrity" id="selected-celebrity">
+                <img id="selected-celebrity-img" src="" alt="" />
+                <div class="selected-celebrity-info">
+                    <div
+                        class="selected-celebrity-name"
+                        id="selected-celebrity-name"
+                    ></div>
+                    <div
+                        class="selected-celebrity-region"
+                        id="selected-celebrity-region"
+                    ></div>
+                </div>
+            </div>
 
             <!-- Upload Section -->
             <div class="upload-card">
@@ -576,8 +757,267 @@
             const scoresBar = document.getElementById("scores-bar");
             const shapesGrid = document.getElementById("shapes-grid");
             const featuresGrid = document.getElementById("features-grid");
+            const carouselTrack = document.getElementById("carousel-track");
+            const selectedCelebrity =
+                document.getElementById("selected-celebrity");
+            const selectedCelebrityImg = document.getElementById(
+                "selected-celebrity-img",
+            );
+            const selectedCelebrityName = document.getElementById(
+                "selected-celebrity-name",
+            );
+            const selectedCelebrityRegion = document.getElementById(
+                "selected-celebrity-region",
+            );
 
             let selectedFile = null;
+
+            // Celebrity data with Wikipedia/public images
+            const celebrities = [
+                // East Asia
+                {
+                    name: "Gong Li",
+                    region: "China",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Gong_Li_Cannes_2019.jpg/440px-Gong_Li_Cannes_2019.jpg",
+                },
+                {
+                    name: "Song Hye-kyo",
+                    region: "South Korea",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Song_Hye-kyo_at_the_Press_Conference_for_KBS_Drama_Special_-_The_Glory_%28January_2023%29_03.jpg/440px-Song_Hye-kyo_at_the_Press_Conference_for_KBS_Drama_Special_-_The_Glory_%28January_2023%29_03.jpg",
+                },
+                {
+                    name: "Ken Watanabe",
+                    region: "Japan",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Ken_Watanabe_2007_%28cropped%29.jpg/440px-Ken_Watanabe_2007_%28cropped%29.jpg",
+                },
+                {
+                    name: "Fan Bingbing",
+                    region: "China",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Fan_Bingbing_Cannes_2017.jpg/440px-Fan_Bingbing_Cannes_2017.jpg",
+                },
+                // South Asia
+                {
+                    name: "Aishwarya Rai",
+                    region: "India",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Aishwarya_Rai_Cannes_2017_4.jpg/440px-Aishwarya_Rai_Cannes_2017_4.jpg",
+                },
+                {
+                    name: "Priyanka Chopra",
+                    region: "India",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Priyanka_Chopra_at_Madame_Tussauds.jpg/440px-Priyanka_Chopra_at_Madame_Tussauds.jpg",
+                },
+                {
+                    name: "Shah Rukh Khan",
+                    region: "India",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Shah_Rukh_Khan_grance_the_launch_of_the_new_Santro.jpg/440px-Shah_Rukh_Khan_grances_the_launch_of_the_new_Santro.jpg",
+                },
+                {
+                    name: "Hrithik Roshan",
+                    region: "India",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Hrithik_at_Rado_launch.jpg/440px-Hrithik_at_Rado_launch.jpg",
+                },
+                // Middle East
+                {
+                    name: "Gal Gadot",
+                    region: "Israel",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Gal_Gadot_%2833746540652%29_%28cropped%29.jpg/440px-Gal_Gadot_%2833746540652%29_%28cropped%29.jpg",
+                },
+                {
+                    name: "Rami Malek",
+                    region: "Egypt",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rami_Malek_in_2015_%282%29_%28cropped%29.jpg/440px-Rami_Malek_in_2015_%282%29_%28cropped%29.jpg",
+                },
+                {
+                    name: "Golshifteh Farahani",
+                    region: "Iran",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Golshifteh_Farahani_Cannes_2018.jpg/440px-Golshifteh_Farahani_Cannes_2018.jpg",
+                },
+                // Africa
+                {
+                    name: "Lupita Nyong'o",
+                    region: "Kenya",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Lupita_Nyong%27o_%2866267570%29_%28cropped%29.jpg/440px-Lupita_Nyong%27o_%2866267570%29_%28cropped%29.jpg",
+                },
+                {
+                    name: "Idris Elba",
+                    region: "UK/Sierra Leone",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Idris_Elba-4580_%28cropped%29.jpg/440px-Idris_Elba-4580_%28cropped%29.jpg",
+                },
+                {
+                    name: "Chiwetel Ejiofor",
+                    region: "Nigeria",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chiwetel_Ejiofor_2014.jpg/440px-Chiwetel_Ejiofor_2014.jpg",
+                },
+                // Latin America
+                {
+                    name: "Salma Hayek",
+                    region: "Mexico",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Salma_Hayek_by_Gage_Skidmore_2.jpg/440px-Salma_Hayek_by_Gage_Skidmore_2.jpg",
+                },
+                {
+                    name: "Oscar Isaac",
+                    region: "Guatemala",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Oscar_Isaac_by_Gage_Skidmore.jpg/440px-Oscar_Isaac_by_Gage_Skidmore.jpg",
+                },
+                {
+                    name: "Gael García Bernal",
+                    region: "Mexico",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Gael_Garc%C3%ADa_Bernal_2014_%28cropped%29.jpg/440px-Gael_Garc%C3%ADa_Bernal_2014_%28cropped%29.jpg",
+                },
+                {
+                    name: "Zoe Saldana",
+                    region: "Dominican Rep.",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Zoe_Saldana_by_Gage_Skidmore.jpg/440px-Zoe_Saldana_by_Gage_Skidmore.jpg",
+                },
+                // Europe
+                {
+                    name: "Marion Cotillard",
+                    region: "France",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Marion_Cotillard_2019_by_Glenn_Francis.jpg/440px-Marion_Cotillard_2019_by_Glenn_Francis.jpg",
+                },
+                {
+                    name: "Mads Mikkelsen",
+                    region: "Denmark",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mads_Mikkelsen_Cannes_2013.jpg/440px-Mads_Mikkelsen_Cannes_2013.jpg",
+                },
+                {
+                    name: "Penélope Cruz",
+                    region: "Spain",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Pen%C3%A9lope_Cruz_Cannes_2018_2.jpg/440px-Pen%C3%A9lope_Cruz_Cannes_2018_2.jpg",
+                },
+                {
+                    name: "Monica Bellucci",
+                    region: "Italy",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Monica_Bellucci_Cannes_2017.jpg/440px-Monica_Bellucci_Cannes_2017.jpg",
+                },
+                // Oceania
+                {
+                    name: "Cate Blanchett",
+                    region: "Australia",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Cate_Blanchett_Cannes_2018_2.jpg/440px-Cate_Blanchett_Cannes_2018_2.jpg",
+                },
+                {
+                    name: "Margot Robbie",
+                    region: "Australia",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Margot_Robbie_at_Somerset_House_in_2013_%28cropped%29.jpg/440px-Margot_Robbie_at_Somerset_House_in_2013_%28cropped%29.jpg",
+                },
+                // Pacific/Indigenous
+                {
+                    name: "Jason Momoa",
+                    region: "Hawaii/Polynesian",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Jason_Momoa_%2843055621224%29_%28cropped%29.jpg/440px-Jason_Momoa_%2843055621224%29_%28cropped%29.jpg",
+                },
+                {
+                    name: "Taika Waititi",
+                    region: "New Zealand/Maori",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Taika_Waititi_by_Gage_Skidmore.jpg/440px-Taika_Waititi_by_Gage_Skidmore.jpg",
+                },
+                // Mixed Heritage
+                {
+                    name: "Zendaya",
+                    region: "Mixed Heritage",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Zendaya_-_2019_by_Glenn_Francis.jpg/440px-Zendaya_-_2019_by_Glenn_Francis.jpg",
+                },
+                {
+                    name: "Keanu Reeves",
+                    region: "Mixed Heritage",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Keanu_Reeves_2013_%28cropped%29.jpg/440px-Keanu_Reeves_2013_%28cropped%29.jpg",
+                },
+                {
+                    name: "Dwayne Johnson",
+                    region: "Mixed Heritage",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Dwayne_Johnson_2014_%28cropped%29.jpg/440px-Dwayne_Johnson_2014_%28cropped%29.jpg",
+                },
+                // More diversity
+                {
+                    name: "Dev Patel",
+                    region: "UK/India",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Dev_Patel_2023.jpg/440px-Dev_Patel_2023.jpg",
+                },
+                {
+                    name: "Michelle Yeoh",
+                    region: "Malaysia",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Michelle_Yeoh_Cannes_2022.jpg/440px-Michelle_Yeoh_Cannes_2022.jpg",
+                },
+                {
+                    name: "Viola Davis",
+                    region: "USA",
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Viola_Davis_by_Gage_Skidmore.jpg/440px-Viola_Davis_by_Gage_Skidmore.jpg",
+                },
+            ];
+
+            // Initialize carousel
+            function initCarousel() {
+                // Duplicate for infinite scroll
+                const allCelebs = [...celebrities, ...celebrities];
+                carouselTrack.innerHTML = allCelebs
+                    .map(
+                        (celeb, i) => `
+                    <div class="celebrity-card" data-index="${i % celebrities.length}" onclick="analyzeCelebrity(${i % celebrities.length})">
+                        <div class="celebrity-img-wrapper">
+                            <img class="celebrity-img" src="${celeb.img}" alt="${celeb.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/120?text=${encodeURIComponent(celeb.name.split(" ")[0])}'">
+                        </div>
+                        <div class="celebrity-name">${celeb.name}</div>
+                        <div class="celebrity-region">${celeb.region}</div>
+                    </div>
+                `,
+                    )
+                    .join("");
+            }
+
+            // Analyze celebrity by fetching their image
+            async function analyzeCelebrity(index) {
+                const celeb = celebrities[index];
+
+                // Show selected celebrity
+                selectedCelebrityImg.src = celeb.img;
+                selectedCelebrityName.textContent = celeb.name;
+                selectedCelebrityRegion.textContent = celeb.region;
+                selectedCelebrity.classList.add("visible");
+
+                // Add analyzing state to card
+                const cards = document.querySelectorAll(
+                    `.celebrity-card[data-index="${index}"]`,
+                );
+                cards.forEach((card) => card.classList.add("analyzing"));
+
+                hideError();
+                hideResults();
+
+                try {
+                    // Fetch image and convert to blob
+                    const response = await fetch(celeb.img);
+                    const blob = await response.blob();
+
+                    // Send to analyze endpoint
+                    const formData = new FormData();
+                    formData.append(
+                        "file",
+                        blob,
+                        `${celeb.name.replace(/\s+/g, "_")}.jpg`,
+                    );
+
+                    const analyzeResponse = await fetch("/analyze", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const data = await analyzeResponse.json();
+                    if (!analyzeResponse.ok)
+                        throw new Error(data.error || "Analysis failed");
+
+                    displayResults(data);
+                } catch (error) {
+                    showError(
+                        `Could not analyze ${celeb.name}: ${error.message}`,
+                    );
+                } finally {
+                    cards.forEach((card) => card.classList.remove("analyzing"));
+                }
+            }
+
+            // Initialize on load
+            initCarousel();
 
             // Upload handlers
             uploadArea.addEventListener("click", (e) => {
