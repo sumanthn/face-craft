@@ -1,0 +1,163 @@
+
+Downloading 50 celebrity images from IMDB...
+
+Processing: Gong Li (China)
+  Already exists
+Processing: Song Hye-kyo (South Korea)
+  Already exists
+Processing: Ken Watanabe (Japan)
+  Already exists
+Processing: Fan Bingbing (China)
+  Already exists
+Processing: Lee Min-ho (South Korea)
+  Already exists
+Processing: Gong Yoo (South Korea)
+  Error fetching nm3222126: 404 Client Error: Not Found for url: https://www.imdb.com/name/nm3222126/
+  Could not find image URL
+Processing: Aishwarya Rai (India)
+  Already exists
+Processing: Priyanka Chopra (India)
+  Already exists
+Processing: Deepika Padukone (India)
+  Already exists
+Processing: Shah Rukh Khan (India)
+  Already exists
+Processing: Hrithik Roshan (India)
+  Already exists
+Processing: Aamir Khan (India)
+  Already exists
+Processing: Gal Gadot (Israel)
+  Already exists
+Processing: Rami Malek (Egypt)
+  Already exists
+Processing: Golshifteh Farahani (Iran)
+  Error fetching nm1291544: 404 Client Error: Not Found for url: https://www.imdb.com/name/nm1291544/
+  Could not find image URL
+Processing: Natalie Portman (Israel)
+  Already exists
+Processing: Lupita Nyong'o (Kenya)
+  Downloaded: lupita_nyongo.jpg
+Processing: Idris Elba (UK/Sierra Leone)
+  Downloaded: idris_elba.jpg
+Processing: Chiwetel Ejiofor (Nigeria)
+  Downloaded: chiwetel_ejiofor.jpg
+Processing: John Boyega (UK/Nigeria)
+  Downloaded: john_boyega.jpg
+Processing: Daniel Kaluuya (UK/Uganda)
+  Downloaded: daniel_kaluuya.jpg
+Processing: Naomi Campbell (UK)
+  Downloaded: naomi_campbell.jpg
+Processing: Salma Hayek (Mexico)
+  Downloaded: salma_hayek.jpg
+Processing: Oscar Isaac (Guatemala)
+  Downloaded: oscar_isaac.jpg
+Processing: Gael García Bernal (Mexico)
+  Downloaded: gael_garcia_bernal.jpg
+Processing: Zoe Saldana (Dominican Rep.)
+  Downloaded: zoe_saldana.jpg
+Processing: Ana de Armas (Cuba)
+  Downloaded: ana_de_armas.jpg
+Processing: Pedro Pascal (Chile)
+  Downloaded: pedro_pascal.jpg
+Processing: Penélope Cruz (Spain)
+  Downloaded: penelope_cruz.jpg
+Processing: Marion Cotillard (France)
+  Downloaded: marion_cotillard.jpg
+Processing: Mads Mikkelsen (Denmark)
+  Downloaded: mads_mikkelsen.jpg
+Processing: Monica Bellucci (Italy)
+  Download failed: HTTPSConnectionPool(host='m.media-amazon.com', port=443): Read timed out. (read timeout=15)
+Processing: Cate Blanchett (Australia)
+  Downloaded: cate_blanchett.jpg
+Processing: Margot Robbie (Australia)
+  Downloaded: margot_robbie.jpg
+Processing: Daniel Craig (UK)
+  Downloaded: daniel_craig.jpg
+Processing: Benedict Cumberbatch (UK)
+  Downloaded: benedict_cumberbatch.jpg
+Processing: Emma Watson (UK)
+  Downloaded: emma_watson.jpg
+Processing: Charlize Theron (South Africa)
+  Downloaded: charlize_theron.jpg
+Processing: Jason Momoa (Hawaii)
+  Downloaded: jason_momoa.jpg
+Processing: Taika Waititi (New Zealand)
+  Downloaded: taika_waititi.jpg
+Processing: Cliff Curtis (New Zealand)
+  Downloaded: cliff_curtis.jpg
+Processing: Dwayne Johnson (Polynesian)
+  Downloaded: dwayne_johnson.jpg
+Processing: Zendaya (Mixed Heritage)
+  Downloaded: zendaya.jpg
+Processing: Keanu Reeves (Mixed Heritage)
+  Downloaded: keanu_reeves.jpg
+Processing: Halle Berry (Mixed Heritage)
+  Downloaded: halle_berry.jpg
+Processing: Dev Patel (UK/India)
+  Downloaded: dev_patel.jpg
+Processing: Michelle Yeoh (Malaysia)
+  Downloaded: michelle_yeoh.jpg
+Processing: Viola Davis (USA)
+  Downloaded: viola_davis.jpg
+Processing: Denzel Washington (USA)
+  Downloaded: denzel_washington.jpg
+Processing: Alicia Vikander (Sweden)
+  Downloaded: alicia_vikander.jpg
+
+==================================================
+Downloaded: 47/50
+Failed: Gong Yoo, Golshifteh Farahani, Monica Bellucci
+Images saved to: /home/dreamsmachine/ideas/casting-detector/static/celebrities
+
+==================================================
+Celebrity array for index.html:
+
+const celebrities = [
+    { name: "Gong Li", region: "China", img: "/static/celebrities/gong_li.jpg" },
+    { name: "Song Hye-kyo", region: "South Korea", img: "/static/celebrities/song_hye_kyo.jpg" },
+    { name: "Ken Watanabe", region: "Japan", img: "/static/celebrities/ken_watanabe.jpg" },
+    { name: "Fan Bingbing", region: "China", img: "/static/celebrities/fan_bingbing.jpg" },
+    { name: "Lee Min-ho", region: "South Korea", img: "/static/celebrities/lee_min_ho.jpg" },
+    { name: "Aishwarya Rai", region: "India", img: "/static/celebrities/aishwarya_rai.jpg" },
+    { name: "Priyanka Chopra", region: "India", img: "/static/celebrities/priyanka_chopra.jpg" },
+    { name: "Deepika Padukone", region: "India", img: "/static/celebrities/deepika_padukone.jpg" },
+    { name: "Shah Rukh Khan", region: "India", img: "/static/celebrities/shah_rukh_khan.jpg" },
+    { name: "Hrithik Roshan", region: "India", img: "/static/celebrities/hrithik_roshan.jpg" },
+    { name: "Aamir Khan", region: "India", img: "/static/celebrities/aamir_khan.jpg" },
+    { name: "Gal Gadot", region: "Israel", img: "/static/celebrities/gal_gadot.jpg" },
+    { name: "Rami Malek", region: "Egypt", img: "/static/celebrities/rami_malek.jpg" },
+    { name: "Natalie Portman", region: "Israel", img: "/static/celebrities/natalie_portman.jpg" },
+    { name: "Lupita Nyong'o", region: "Kenya", img: "/static/celebrities/lupita_nyongo.jpg" },
+    { name: "Idris Elba", region: "UK/Sierra Leone", img: "/static/celebrities/idris_elba.jpg" },
+    { name: "Chiwetel Ejiofor", region: "Nigeria", img: "/static/celebrities/chiwetel_ejiofor.jpg" },
+    { name: "John Boyega", region: "UK/Nigeria", img: "/static/celebrities/john_boyega.jpg" },
+    { name: "Daniel Kaluuya", region: "UK/Uganda", img: "/static/celebrities/daniel_kaluuya.jpg" },
+    { name: "Naomi Campbell", region: "UK", img: "/static/celebrities/naomi_campbell.jpg" },
+    { name: "Salma Hayek", region: "Mexico", img: "/static/celebrities/salma_hayek.jpg" },
+    { name: "Oscar Isaac", region: "Guatemala", img: "/static/celebrities/oscar_isaac.jpg" },
+    { name: "Gael García Bernal", region: "Mexico", img: "/static/celebrities/gael_garcia_bernal.jpg" },
+    { name: "Zoe Saldana", region: "Dominican Rep.", img: "/static/celebrities/zoe_saldana.jpg" },
+    { name: "Ana de Armas", region: "Cuba", img: "/static/celebrities/ana_de_armas.jpg" },
+    { name: "Pedro Pascal", region: "Chile", img: "/static/celebrities/pedro_pascal.jpg" },
+    { name: "Penélope Cruz", region: "Spain", img: "/static/celebrities/penelope_cruz.jpg" },
+    { name: "Marion Cotillard", region: "France", img: "/static/celebrities/marion_cotillard.jpg" },
+    { name: "Mads Mikkelsen", region: "Denmark", img: "/static/celebrities/mads_mikkelsen.jpg" },
+    { name: "Cate Blanchett", region: "Australia", img: "/static/celebrities/cate_blanchett.jpg" },
+    { name: "Margot Robbie", region: "Australia", img: "/static/celebrities/margot_robbie.jpg" },
+    { name: "Daniel Craig", region: "UK", img: "/static/celebrities/daniel_craig.jpg" },
+    { name: "Benedict Cumberbatch", region: "UK", img: "/static/celebrities/benedict_cumberbatch.jpg" },
+    { name: "Emma Watson", region: "UK", img: "/static/celebrities/emma_watson.jpg" },
+    { name: "Charlize Theron", region: "South Africa", img: "/static/celebrities/charlize_theron.jpg" },
+    { name: "Jason Momoa", region: "Hawaii", img: "/static/celebrities/jason_momoa.jpg" },
+    { name: "Taika Waititi", region: "New Zealand", img: "/static/celebrities/taika_waititi.jpg" },
+    { name: "Cliff Curtis", region: "New Zealand", img: "/static/celebrities/cliff_curtis.jpg" },
+    { name: "Dwayne Johnson", region: "Polynesian", img: "/static/celebrities/dwayne_johnson.jpg" },
+    { name: "Zendaya", region: "Mixed Heritage", img: "/static/celebrities/zendaya.jpg" },
+    { name: "Keanu Reeves", region: "Mixed Heritage", img: "/static/celebrities/keanu_reeves.jpg" },
+    { name: "Halle Berry", region: "Mixed Heritage", img: "/static/celebrities/halle_berry.jpg" },
+    { name: "Dev Patel", region: "UK/India", img: "/static/celebrities/dev_patel.jpg" },
+    { name: "Michelle Yeoh", region: "Malaysia", img: "/static/celebrities/michelle_yeoh.jpg" },
+    { name: "Viola Davis", region: "USA", img: "/static/celebrities/viola_davis.jpg" },
+    { name: "Denzel Washington", region: "USA", img: "/static/celebrities/denzel_washington.jpg" },
+    { name: "Alicia Vikander", region: "Sweden", img: "/static/celebrities/alicia_vikander.jpg" },
+];

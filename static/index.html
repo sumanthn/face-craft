@@ -772,177 +772,265 @@
 
             let selectedFile = null;
 
-            // Celebrity data with Wikipedia/public images
+            // Celebrity data - local images from IMDB
             const celebrities = [
                 // East Asia
                 {
                     name: "Gong Li",
                     region: "China",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Gong_Li_Cannes_2019.jpg/440px-Gong_Li_Cannes_2019.jpg",
+                    img: "/static/celebrities/gong_li.jpg",
                 },
                 {
                     name: "Song Hye-kyo",
                     region: "South Korea",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Song_Hye-kyo_at_the_Press_Conference_for_KBS_Drama_Special_-_The_Glory_%28January_2023%29_03.jpg/440px-Song_Hye-kyo_at_the_Press_Conference_for_KBS_Drama_Special_-_The_Glory_%28January_2023%29_03.jpg",
+                    img: "/static/celebrities/song_hye_kyo.jpg",
                 },
                 {
                     name: "Ken Watanabe",
                     region: "Japan",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Ken_Watanabe_2007_%28cropped%29.jpg/440px-Ken_Watanabe_2007_%28cropped%29.jpg",
+                    img: "/static/celebrities/ken_watanabe.jpg",
                 },
                 {
                     name: "Fan Bingbing",
                     region: "China",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Fan_Bingbing_Cannes_2017.jpg/440px-Fan_Bingbing_Cannes_2017.jpg",
+                    img: "/static/celebrities/fan_bingbing.jpg",
+                },
+                {
+                    name: "Lee Min-ho",
+                    region: "South Korea",
+                    img: "/static/celebrities/lee_min_ho.jpg",
+                },
+                {
+                    name: "Gong Yoo",
+                    region: "South Korea",
+                    img: "/static/celebrities/gong_yoo.jpg",
                 },
                 // South Asia
                 {
                     name: "Aishwarya Rai",
                     region: "India",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Aishwarya_Rai_Cannes_2017_4.jpg/440px-Aishwarya_Rai_Cannes_2017_4.jpg",
+                    img: "/static/celebrities/aishwarya_rai.jpg",
                 },
                 {
                     name: "Priyanka Chopra",
                     region: "India",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Priyanka_Chopra_at_Madame_Tussauds.jpg/440px-Priyanka_Chopra_at_Madame_Tussauds.jpg",
+                    img: "/static/celebrities/priyanka_chopra.jpg",
+                },
+                {
+                    name: "Deepika Padukone",
+                    region: "India",
+                    img: "/static/celebrities/deepika_padukone.jpg",
                 },
                 {
                     name: "Shah Rukh Khan",
                     region: "India",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Shah_Rukh_Khan_grance_the_launch_of_the_new_Santro.jpg/440px-Shah_Rukh_Khan_grances_the_launch_of_the_new_Santro.jpg",
+                    img: "/static/celebrities/shah_rukh_khan.jpg",
                 },
                 {
                     name: "Hrithik Roshan",
                     region: "India",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Hrithik_at_Rado_launch.jpg/440px-Hrithik_at_Rado_launch.jpg",
+                    img: "/static/celebrities/hrithik_roshan.jpg",
                 },
-                // Middle East
+                {
+                    name: "Aamir Khan",
+                    region: "India",
+                    img: "/static/celebrities/aamir_khan.jpg",
+                },
+                // Middle East / North Africa
                 {
                     name: "Gal Gadot",
                     region: "Israel",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Gal_Gadot_%2833746540652%29_%28cropped%29.jpg/440px-Gal_Gadot_%2833746540652%29_%28cropped%29.jpg",
+                    img: "/static/celebrities/gal_gadot.jpg",
                 },
                 {
                     name: "Rami Malek",
                     region: "Egypt",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Rami_Malek_in_2015_%282%29_%28cropped%29.jpg/440px-Rami_Malek_in_2015_%282%29_%28cropped%29.jpg",
+                    img: "/static/celebrities/rami_malek.jpg",
                 },
                 {
                     name: "Golshifteh Farahani",
                     region: "Iran",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Golshifteh_Farahani_Cannes_2018.jpg/440px-Golshifteh_Farahani_Cannes_2018.jpg",
+                    img: "/static/celebrities/golshifteh_farahani.jpg",
                 },
-                // Africa
+                {
+                    name: "Natalie Portman",
+                    region: "Israel",
+                    img: "/static/celebrities/natalie_portman.jpg",
+                },
+                // Sub-Saharan Africa
                 {
                     name: "Lupita Nyong'o",
                     region: "Kenya",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Lupita_Nyong%27o_%2866267570%29_%28cropped%29.jpg/440px-Lupita_Nyong%27o_%2866267570%29_%28cropped%29.jpg",
+                    img: "/static/celebrities/lupita_nyongo.jpg",
                 },
                 {
                     name: "Idris Elba",
                     region: "UK/Sierra Leone",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Idris_Elba-4580_%28cropped%29.jpg/440px-Idris_Elba-4580_%28cropped%29.jpg",
+                    img: "/static/celebrities/idris_elba.jpg",
                 },
                 {
                     name: "Chiwetel Ejiofor",
                     region: "Nigeria",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chiwetel_Ejiofor_2014.jpg/440px-Chiwetel_Ejiofor_2014.jpg",
+                    img: "/static/celebrities/chiwetel_ejiofor.jpg",
+                },
+                {
+                    name: "John Boyega",
+                    region: "UK/Nigeria",
+                    img: "/static/celebrities/john_boyega.jpg",
+                },
+                {
+                    name: "Daniel Kaluuya",
+                    region: "UK/Uganda",
+                    img: "/static/celebrities/daniel_kaluuya.jpg",
+                },
+                {
+                    name: "Naomi Campbell",
+                    region: "UK",
+                    img: "/static/celebrities/naomi_campbell.jpg",
                 },
                 // Latin America
                 {
                     name: "Salma Hayek",
                     region: "Mexico",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Salma_Hayek_by_Gage_Skidmore_2.jpg/440px-Salma_Hayek_by_Gage_Skidmore_2.jpg",
+                    img: "/static/celebrities/salma_hayek.jpg",
                 },
                 {
                     name: "Oscar Isaac",
                     region: "Guatemala",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Oscar_Isaac_by_Gage_Skidmore.jpg/440px-Oscar_Isaac_by_Gage_Skidmore.jpg",
+                    img: "/static/celebrities/oscar_isaac.jpg",
                 },
                 {
                     name: "Gael García Bernal",
                     region: "Mexico",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Gael_Garc%C3%ADa_Bernal_2014_%28cropped%29.jpg/440px-Gael_Garc%C3%ADa_Bernal_2014_%28cropped%29.jpg",
+                    img: "/static/celebrities/gael_garcia_bernal.jpg",
                 },
                 {
                     name: "Zoe Saldana",
                     region: "Dominican Rep.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Zoe_Saldana_by_Gage_Skidmore.jpg/440px-Zoe_Saldana_by_Gage_Skidmore.jpg",
+                    img: "/static/celebrities/zoe_saldana.jpg",
+                },
+                {
+                    name: "Ana de Armas",
+                    region: "Cuba",
+                    img: "/static/celebrities/ana_de_armas.jpg",
+                },
+                {
+                    name: "Pedro Pascal",
+                    region: "Chile",
+                    img: "/static/celebrities/pedro_pascal.jpg",
+                },
+                {
+                    name: "Penélope Cruz",
+                    region: "Spain",
+                    img: "/static/celebrities/penelope_cruz.jpg",
                 },
                 // Europe
                 {
                     name: "Marion Cotillard",
                     region: "France",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Marion_Cotillard_2019_by_Glenn_Francis.jpg/440px-Marion_Cotillard_2019_by_Glenn_Francis.jpg",
+                    img: "/static/celebrities/marion_cotillard.jpg",
                 },
                 {
                     name: "Mads Mikkelsen",
                     region: "Denmark",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mads_Mikkelsen_Cannes_2013.jpg/440px-Mads_Mikkelsen_Cannes_2013.jpg",
-                },
-                {
-                    name: "Penélope Cruz",
-                    region: "Spain",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Pen%C3%A9lope_Cruz_Cannes_2018_2.jpg/440px-Pen%C3%A9lope_Cruz_Cannes_2018_2.jpg",
+                    img: "/static/celebrities/mads_mikkelsen.jpg",
                 },
                 {
                     name: "Monica Bellucci",
                     region: "Italy",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Monica_Bellucci_Cannes_2017.jpg/440px-Monica_Bellucci_Cannes_2017.jpg",
+                    img: "/static/celebrities/monica_bellucci.jpg",
                 },
-                // Oceania
                 {
                     name: "Cate Blanchett",
                     region: "Australia",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Cate_Blanchett_Cannes_2018_2.jpg/440px-Cate_Blanchett_Cannes_2018_2.jpg",
+                    img: "/static/celebrities/cate_blanchett.jpg",
                 },
                 {
                     name: "Margot Robbie",
                     region: "Australia",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Margot_Robbie_at_Somerset_House_in_2013_%28cropped%29.jpg/440px-Margot_Robbie_at_Somerset_House_in_2013_%28cropped%29.jpg",
+                    img: "/static/celebrities/margot_robbie.jpg",
                 },
-                // Pacific/Indigenous
+                {
+                    name: "Daniel Craig",
+                    region: "UK",
+                    img: "/static/celebrities/daniel_craig.jpg",
+                },
+                {
+                    name: "Benedict Cumberbatch",
+                    region: "UK",
+                    img: "/static/celebrities/benedict_cumberbatch.jpg",
+                },
+                {
+                    name: "Emma Watson",
+                    region: "UK",
+                    img: "/static/celebrities/emma_watson.jpg",
+                },
+                {
+                    name: "Charlize Theron",
+                    region: "South Africa",
+                    img: "/static/celebrities/charlize_theron.jpg",
+                },
+                // Pacific / Indigenous
                 {
                     name: "Jason Momoa",
-                    region: "Hawaii/Polynesian",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Jason_Momoa_%2843055621224%29_%28cropped%29.jpg/440px-Jason_Momoa_%2843055621224%29_%28cropped%29.jpg",
+                    region: "Hawaii",
+                    img: "/static/celebrities/jason_momoa.jpg",
                 },
                 {
                     name: "Taika Waititi",
-                    region: "New Zealand/Maori",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Taika_Waititi_by_Gage_Skidmore.jpg/440px-Taika_Waititi_by_Gage_Skidmore.jpg",
+                    region: "New Zealand",
+                    img: "/static/celebrities/taika_waititi.jpg",
                 },
-                // Mixed Heritage
+                {
+                    name: "Cliff Curtis",
+                    region: "New Zealand",
+                    img: "/static/celebrities/cliff_curtis.jpg",
+                },
+                {
+                    name: "Dwayne Johnson",
+                    region: "Polynesian",
+                    img: "/static/celebrities/dwayne_johnson.jpg",
+                },
+                // Mixed Heritage / Diverse
                 {
                     name: "Zendaya",
                     region: "Mixed Heritage",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Zendaya_-_2019_by_Glenn_Francis.jpg/440px-Zendaya_-_2019_by_Glenn_Francis.jpg",
+                    img: "/static/celebrities/zendaya.jpg",
                 },
                 {
                     name: "Keanu Reeves",
                     region: "Mixed Heritage",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Keanu_Reeves_2013_%28cropped%29.jpg/440px-Keanu_Reeves_2013_%28cropped%29.jpg",
+                    img: "/static/celebrities/keanu_reeves.jpg",
                 },
                 {
-                    name: "Dwayne Johnson",
+                    name: "Halle Berry",
                     region: "Mixed Heritage",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Dwayne_Johnson_2014_%28cropped%29.jpg/440px-Dwayne_Johnson_2014_%28cropped%29.jpg",
+                    img: "/static/celebrities/halle_berry.jpg",
                 },
-                // More diversity
                 {
                     name: "Dev Patel",
                     region: "UK/India",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Dev_Patel_2023.jpg/440px-Dev_Patel_2023.jpg",
+                    img: "/static/celebrities/dev_patel.jpg",
                 },
                 {
                     name: "Michelle Yeoh",
                     region: "Malaysia",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Michelle_Yeoh_Cannes_2022.jpg/440px-Michelle_Yeoh_Cannes_2022.jpg",
+                    img: "/static/celebrities/michelle_yeoh.jpg",
                 },
                 {
                     name: "Viola Davis",
                     region: "USA",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Viola_Davis_by_Gage_Skidmore.jpg/440px-Viola_Davis_by_Gage_Skidmore.jpg",
+                    img: "/static/celebrities/viola_davis.jpg",
+                },
+                {
+                    name: "Denzel Washington",
+                    region: "USA",
+                    img: "/static/celebrities/denzel_washington.jpg",
+                },
+                {
+                    name: "Alicia Vikander",
+                    region: "Sweden",
+                    img: "/static/celebrities/alicia_vikander.jpg",
                 },
             ];
 
