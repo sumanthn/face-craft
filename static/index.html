@@ -268,6 +268,76 @@
                 margin-top: 4px;
             }
 
+            /* Feature Shapes Detail */
+            .feature-shapes-section {
+                margin-bottom: 25px;
+            }
+
+            .shapes-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 15px;
+            }
+
+            .shape-card {
+                background: var(--bg-feature);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 18px;
+            }
+
+            .shape-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .shape-icon {
+                width: 32px;
+                height: 32px;
+                background: linear-gradient(135deg, var(--accent), #8b5cf6);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .shape-icon svg {
+                width: 16px;
+                height: 16px;
+                color: white;
+            }
+
+            .shape-title {
+                font-weight: 600;
+                color: var(--text-primary);
+                font-size: 0.95rem;
+            }
+
+            .shape-tags {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+            }
+
+            .shape-tag {
+                background: rgba(99, 102, 241, 0.15);
+                color: var(--accent-light);
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+            .shape-desc {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                line-height: 1.5;
+            }
+
             /* Unique Features */
             .features-section {
                 margin-bottom: 25px;
@@ -473,6 +543,11 @@
 
                 <div class="scores-bar" id="scores-bar"></div>
 
+                <div class="feature-shapes-section">
+                    <h3 class="section-title">Your Feature Analysis</h3>
+                    <div class="shapes-grid" id="shapes-grid"></div>
+                </div>
+
                 <div class="features-section">
                     <h3 class="section-title">What Makes You Unique</h3>
                     <div class="features-grid" id="features-grid"></div>
@@ -499,6 +574,7 @@
             const warningsList = document.getElementById("warnings-list");
             const aiSummaryText = document.getElementById("ai-summary-text");
             const scoresBar = document.getElementById("scores-bar");
+            const shapesGrid = document.getElementById("shapes-grid");
             const featuresGrid = document.getElementById("features-grid");
 
             let selectedFile = null;
@@ -611,8 +687,8 @@
                     warnings.classList.remove("visible");
                 }
 
-                // AI Summary
-                aiSummaryText.textContent = data.ai_summary;
+                // Summary (from our model - no external AI)
+                aiSummaryText.textContent = data.summary;
 
                 // Scores
                 const scores = data.scores;
@@ -638,6 +714,87 @@
                     <div class="score-label">Face Shape</div>
                 </div>
             `;
+
+                // Feature Shapes (detailed analysis from our model)
+                const shapeIcons = {
+                    eyes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/></svg>',
+                    brows: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8c2-3 5-4 8-4s6 1 8 4"/></svg>',
+                    nose: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12M8 20c2-2 6-2 8 0"/></svg>',
+                    lips: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 14c2-4 12-4 14 0M5 14c2 2 12 2 14 0"/></svg>',
+                    chin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20c-4 0-7-3-7-7v-2h14v2c0 4-3 7-7 7z"/></svg>',
+                    cheekbones:
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12c2-2 4-3 8-3s6 1 8 3"/></svg>',
+                };
+
+                const fs = data.feature_shapes;
+                if (fs) {
+                    shapesGrid.innerHTML = `
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.eyes}</div>
+                                <span class="shape-title">Eyes</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.eyes.shape}</span>
+                                <span class="shape-tag">${fs.eyes.size}</span>
+                            </div>
+                            <div class="shape-desc">${fs.eyes.description}</div>
+                        </div>
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.brows}</div>
+                                <span class="shape-title">Brows</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.brows.shape}</span>
+                                <span class="shape-tag">${fs.brows.thickness}</span>
+                            </div>
+                            <div class="shape-desc">${fs.brows.description}</div>
+                        </div>
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.nose}</div>
+                                <span class="shape-title">Nose</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.nose.shape}</span>
+                                <span class="shape-tag">${fs.nose.tip}</span>
+                            </div>
+                            <div class="shape-desc">${fs.nose.description}</div>
+                        </div>
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.lips}</div>
+                                <span class="shape-title">Lips</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.lips.shape}</span>
+                                <span class="shape-tag">${fs.lips.ratio}</span>
+                            </div>
+                            <div class="shape-desc">${fs.lips.description}</div>
+                        </div>
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.chin}</div>
+                                <span class="shape-title">Chin</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.chin.shape}</span>
+                            </div>
+                            <div class="shape-desc">${fs.chin.description}</div>
+                        </div>
+                        <div class="shape-card">
+                            <div class="shape-header">
+                                <div class="shape-icon">${shapeIcons.cheekbones}</div>
+                                <span class="shape-title">Cheekbones</span>
+                            </div>
+                            <div class="shape-tags">
+                                <span class="shape-tag">${fs.cheekbones.prominence}</span>
+                            </div>
+                            <div class="shape-desc">${fs.cheekbones.description}</div>
+                        </div>
+                    `;
+                }
 
                 // Unique Features
                 const icons = {

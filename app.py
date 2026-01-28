@@ -117,20 +117,7 @@ def analyze_face(image):
 
 
 # Create Gradio interface
-with gr.Blocks(
-    title="Facial Uniqueness Analyzer",
-    theme=gr.themes.Soft(),
-    css="""
-    .report-box {
-        font-family: monospace;
-        white-space: pre-wrap;
-        background-color: #1a1a2e;
-        color: #eee;
-        padding: 20px;
-        border-radius: 10px;
-    }
-    """
-) as demo:
+with gr.Blocks(title="Facial Uniqueness Analyzer") as demo:
     gr.Markdown("""
     # Facial Uniqueness Analyzer
 

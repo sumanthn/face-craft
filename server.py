@@ -115,47 +115,223 @@ def get_simple_scores(fingerprint) -> dict:
     }
 
 
-async def generate_ai_summary(fingerprint, unique_features) -> str:
-    """Use DeepSeek to generate a natural, personalized summary."""
+def get_feature_shapes(fingerprint) -> dict:
+    """Get detailed feature shape analysis from our model."""
+    shapes = fingerprint.shapes
+    return {
+        "eyes": {
+            "shape": shapes.eye_shape.title(),
+            "size": shapes.eye_size.title(),
+            "description": get_eye_description(shapes.eye_shape, shapes.eye_size)
+        },
+        "brows": {
+            "shape": shapes.brow_shape.title(),
+            "thickness": shapes.brow_thickness.title(),
+            "description": get_brow_description(shapes.brow_shape, shapes.brow_thickness)
+        },
+        "nose": {
+            "shape": shapes.nose_shape.title(),
+            "tip": shapes.nose_tip.title(),
+            "description": get_nose_description(shapes.nose_shape, shapes.nose_tip)
+        },
+        "lips": {
+            "shape": shapes.lip_shape.title(),
+            "ratio": shapes.lip_ratio.title(),
+            "description": get_lip_description(shapes.lip_shape, shapes.lip_ratio)
+        },
+        "chin": {
+            "shape": shapes.chin_shape.title(),
+            "description": get_chin_description(shapes.chin_shape)
+        },
+        "cheekbones": {
+            "prominence": shapes.cheekbone_prominence.title(),
+            "description": get_cheekbone_description(shapes.cheekbone_prominence)
+        }
+    }
 
-    # Build context for the AI
-    features_text = "\n".join([f"- {f['feature']}: {f['description']}" for f in unique_features])
 
-    prompt = f"""You are a friendly facial feature analyst. Based on these detected features, write a SHORT, engaging 2-3 sentence summary about what makes this person's face unique and beautiful. Be positive and specific. Don't use generic phrases.
+def get_eye_description(shape, size):
+    descriptions = {
+        ("round", "large"): "Striking, expressive round eyes that draw immediate attention",
+        ("round", "medium"): "Soft, round eyes with a warm, inviting quality",
+        ("round", "small"): "Delicate round eyes with an alert, curious expression",
+        ("almond", "large"): "Elegant, elongated almond eyes - classically beautiful",
+        ("almond", "medium"): "Well-proportioned almond eyes with timeless appeal",
+        ("almond", "small"): "Refined almond eyes with subtle sophistication",
+        ("hooded", "large"): "Mysterious hooded eyes with captivating depth",
+        ("hooded", "medium"): "Sultry hooded eyes that create an alluring look",
+        ("hooded", "small"): "Intense hooded eyes with focused appeal",
+        ("upturned", "large"): "Bright, upturned eyes with a naturally cheerful look",
+        ("upturned", "medium"): "Cat-like upturned eyes with elegant lift",
+        ("upturned", "small"): "Playful upturned eyes with pixie-like charm",
+        ("downturned", "large"): "Soulful downturned eyes with emotional depth",
+        ("downturned", "medium"): "Gentle downturned eyes with a thoughtful expression",
+        ("downturned", "small"): "Soft downturned eyes with quiet intensity",
+    }
+    return descriptions.get((shape, size), f"{size.title()} {shape} eyes")
 
-Detected unique features:
-{features_text}
 
-Face classification: {fingerprint.archetype.classification}
-Symmetry score: {int(fingerprint.symmetry.overall_score * 100)}%
-Primary feature: {fingerprint.prominence.primary_feature}
+def get_brow_description(shape, thickness):
+    descriptions = {
+        ("arched", "thick"): "Bold, dramatically arched brows that frame the face powerfully",
+        ("arched", "medium"): "Elegantly arched brows with refined definition",
+        ("arched", "thin"): "Delicately arched brows with graceful lines",
+        ("curved", "thick"): "Strong, naturally curved brows with full body",
+        ("curved", "medium"): "Soft, gently curved brows with balanced shape",
+        ("curved", "thin"): "Fine, curved brows with understated elegance",
+        ("straight", "thick"): "Bold, straight brows creating a strong horizontal line",
+        ("straight", "medium"): "Clean, straight brows with modern appeal",
+        ("straight", "thin"): "Sleek, straight brows with minimalist beauty",
+        ("s-shaped", "thick"): "Distinctive S-shaped brows with dramatic character",
+        ("s-shaped", "medium"): "Unique S-curved brows with artistic flair",
+        ("s-shaped", "thin"): "Subtle S-shaped brows with delicate definition",
+    }
+    return descriptions.get((shape, thickness), f"{thickness.title()} {shape} brows")
 
-Write a warm, personalized summary (2-3 sentences only):"""
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                DEEPSEEK_API_URL,
-                headers={
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "deepseek-chat",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 150,
-                    "temperature": 0.7
-                }
-            )
+def get_nose_description(shape, tip):
+    descriptions = {
+        ("straight", "rounded"): "Classic straight nose with a soft, rounded tip",
+        ("straight", "pointed"): "Refined straight nose with elegant definition",
+        ("straight", "upturned"): "Straight nose with a charming upturned tip",
+        ("straight", "downturned"): "Distinguished straight nose with strong profile",
+        ("narrow", "rounded"): "Delicate narrow nose with soft contours",
+        ("narrow", "pointed"): "Elegant narrow nose with refined tip",
+        ("narrow", "upturned"): "Petite nose with an endearing upturned tip",
+        ("narrow", "downturned"): "Slim nose with graceful downward curve",
+        ("wide", "rounded"): "Strong nose with soft, rounded features",
+        ("wide", "pointed"): "Bold nose with defined tip",
+        ("wide", "upturned"): "Characterful nose with upturned tip",
+        ("wide", "downturned"): "Prominent nose with distinguished profile",
+        ("aquiline", "rounded"): "Noble aquiline nose with soft tip",
+        ("aquiline", "pointed"): "Striking aquiline profile with sharp definition",
+        ("aquiline", "downturned"): "Regal aquiline nose with dramatic curve",
+    }
+    return descriptions.get((shape, tip), f"{shape.title()} nose with {tip} tip")
 
-            if response.status_code == 200:
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        print(f"DeepSeek API error: {e}")
 
-    # Fallback to basic summary if API fails
-    return fingerprint.headline
+def get_lip_description(shape, ratio):
+    descriptions = {
+        ("full", "balanced"): "Beautifully full lips with perfect proportions",
+        ("full", "top-heavy"): "Lush lips with a prominent upper lip",
+        ("full", "bottom-heavy"): "Sensual lips with a fuller lower lip",
+        ("thin", "balanced"): "Refined, delicate lips with elegant lines",
+        ("thin", "top-heavy"): "Subtle lips with defined upper contour",
+        ("thin", "bottom-heavy"): "Graceful lips with soft lower fullness",
+        ("heart", "balanced"): "Romantic heart-shaped lips with lovely symmetry",
+        ("heart", "top-heavy"): "Cupid's bow lips with pronounced upper shape",
+        ("heart", "bottom-heavy"): "Sweet heart-shaped lips with pouty lower lip",
+        ("bow-shaped", "balanced"): "Classic bow-shaped lips with perfect definition",
+        ("bow-shaped", "top-heavy"): "Dramatic cupid's bow with elegant peaks",
+        ("wide", "balanced"): "Generous, expressive lips that enhance your smile",
+    }
+    return descriptions.get((shape, ratio), f"{shape.title()} lips")
+
+
+def get_chin_description(shape):
+    descriptions = {
+        "pointed": "Defined pointed chin adding elegant length to the face",
+        "rounded": "Soft rounded chin creating gentle, approachable appeal",
+        "square": "Strong square chin with confident, defined structure",
+    }
+    return descriptions.get(shape, f"{shape.title()} chin")
+
+
+def get_cheekbone_description(prominence):
+    descriptions = {
+        "high": "Prominent high cheekbones creating striking facial architecture",
+        "medium": "Well-defined cheekbones with balanced structure",
+        "low": "Soft cheekbone structure with gentle contours",
+    }
+    return descriptions.get(prominence, f"{prominence.title()} cheekbones")
+
+
+def generate_summary(fingerprint) -> str:
+    """Generate a natural summary directly from our model's analysis - no AI needed!"""
+    shapes = fingerprint.shapes
+    arch = fingerprint.archetype
+    color = fingerprint.color
+    sym = fingerprint.symmetry
+
+    # Build specific, data-driven sentences
+    parts = []
+
+    # Lead with the most distinctive eye feature
+    eye_desc = {
+        ("round", "large"): "Your large, round eyes are immediately captivating",
+        ("round", "medium"): "Your round eyes have a warm, expressive quality",
+        ("round", "small"): "Your round eyes carry an alert, focused intensity",
+        ("almond", "large"): "Your large almond eyes are classically striking",
+        ("almond", "medium"): "Your almond-shaped eyes have elegant proportions",
+        ("almond", "small"): "Your refined almond eyes convey quiet sophistication",
+        ("hooded", "large"): "Your hooded eyes create a mysterious, magnetic look",
+        ("hooded", "medium"): "Your hooded eyes have an alluring, sultry quality",
+        ("hooded", "small"): "Your hooded eyes project focused intensity",
+        ("upturned", "large"): "Your upturned eyes give you a bright, optimistic look",
+        ("upturned", "medium"): "Your cat-like upturned eyes are distinctively elegant",
+        ("upturned", "small"): "Your upturned eyes have a playful, pixie-like charm",
+    }.get((shapes.eye_shape, shapes.eye_size), f"Your {shapes.eye_shape} eyes are distinctive")
+
+    # Add brow context
+    brow_adds = {
+        ("s-shaped", "thick"): ", framed by bold, dramatically shaped brows",
+        ("arched", "thick"): ", enhanced by strong arched brows",
+        ("curved", "thick"): ", complemented by full, expressive brows",
+        ("s-shaped", "thin"): ", with elegantly sculpted brows",
+        ("arched", "thin"): ", accented by delicately arched brows",
+    }.get((shapes.brow_shape, shapes.brow_thickness), "")
+
+    parts.append(eye_desc + brow_adds + ".")
+
+    # Second sentence: face structure
+    structure_parts = []
+
+    if shapes.cheekbone_prominence == "high":
+        structure_parts.append("prominent cheekbones")
+
+    if shapes.chin_shape == "pointed":
+        structure_parts.append("a defined chin")
+    elif shapes.chin_shape == "square":
+        structure_parts.append("a strong jawline")
+
+    if "angular" in arch.classification.lower():
+        structure_parts.append("angular bone structure")
+    elif "soft" in arch.classification.lower():
+        structure_parts.append("soft, approachable contours")
+
+    if structure_parts:
+        parts.append(f"Your face features {', '.join(structure_parts[:2])}.")
+
+    # Third sentence: distinctive details
+    details = []
+
+    nose_detail = {
+        ("narrow", "pointed"): "an elegantly refined nose",
+        ("narrow", "upturned"): "a charming upturned nose",
+        ("wide", "rounded"): "a strong, characterful nose",
+        ("straight", "pointed"): "a classically straight nose",
+    }.get((shapes.nose_shape, shapes.nose_tip))
+    if nose_detail:
+        details.append(nose_detail)
+
+    lip_detail = {
+        ("full", "balanced"): "beautifully full lips",
+        ("full", "top-heavy"): "full lips with a defined upper lip",
+        ("full", "bottom-heavy"): "sensual, pouty lips",
+        ("heart", "balanced"): "romantic heart-shaped lips",
+        ("bow-shaped", "balanced"): "a perfect cupid's bow",
+    }.get((shapes.lip_shape, shapes.lip_ratio))
+    if lip_detail:
+        details.append(lip_detail)
+
+    if details:
+        parts.append(f"You have {' and '.join(details)}.")
+
+    # Add color/contrast note if striking
+    if color.contrast_level.value == "high":
+        parts.append("Your high contrast coloring is naturally photogenic.")
+
+    return " ".join(parts)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -189,16 +365,18 @@ async def analyze_face(file: UploadFile = File(...)):
                 content={"error": "No face detected. Please use a clear, front-facing photo."}
             )
 
-        # Get unique features and simple scores
+        # Get all analysis from our model
         unique_features = get_unique_features(fingerprint)
         simple_scores = get_simple_scores(fingerprint)
+        feature_shapes = get_feature_shapes(fingerprint)
 
-        # Generate AI summary
-        ai_summary = await generate_ai_summary(fingerprint, unique_features)
+        # Generate summary from our model - no external AI needed!
+        summary = generate_summary(fingerprint)
 
-        # Build response
+        # Build response with rich feature data
         result = {
-            "ai_summary": ai_summary,
+            "summary": summary,
+            "feature_shapes": feature_shapes,
             "unique_features": unique_features,
             "scores": simple_scores,
             "is_reliable": fingerprint.is_reliable,
